@@ -332,13 +332,10 @@ func (st symtab) buildString(enclosingNamespace, typeName string, schema interfa
 	case "array":
 		return st.makeArrayCodec(enclosingNamespace, schema)
 	default:
-		t, err := newName(nameName(typeName), nameEnclosingNamespace(enclosingNamespace))
-		if err != nil {
-			return nil, newCodecBuildError(typeName, "could not normalize name: %q: %q: %s", enclosingNamespace, typeName, err)
-		}
-		c, ok := st.name[t.n]
+		t := getQualifiedName(typeName, "", enclosingNamespace)
+		c, ok := st.name[t]
 		if !ok {
-			return nil, newCodecBuildError("unknown", "unknown type name: %s", t.n)
+			return nil, newCodecBuildError("unknown", "unknown type name: %s", t)
 		}
 		return c, nil
 	}

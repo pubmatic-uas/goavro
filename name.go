@@ -19,6 +19,7 @@
 package goavro
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 )
@@ -34,6 +35,24 @@ type name struct {
 }
 
 type nameSetter func(*name) error
+
+func getQualifiedName(n, ns, ens string) string {
+	if !strings.ContainsRune(n, '.') {
+		var buffer bytes.Buffer
+		if ns != "" {
+			buffer.WriteString(ns)
+			buffer.WriteString(".")
+			buffer.WriteString(n)
+			n = buffer.String()
+		} else if ens != "" {
+			buffer.WriteString(ens)
+			buffer.WriteString(".")
+			buffer.WriteString(n)
+			n = buffer.String()
+		}
+	}
+	return n
+}
 
 func newName(setters ...nameSetter) (*name, error) {
 	var err error

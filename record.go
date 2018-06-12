@@ -75,21 +75,13 @@ func (r Record) GetQualified(qualifiedName string) (interface{}, error) {
 // Get returns the datum of the specified Record field.
 func (r Record) Get(fieldName string) (interface{}, error) {
 	// qualify fieldName searches based on record namespace
-	fn, err := newName(nameName(fieldName), nameNamespace(r.n.ns))
-	if err != nil {
-		return nil, err
-	}
-	return r.GetQualified(fn.n)
+	return r.GetQualified(getQualifiedName(fieldName, r.n.ns, ""))
 }
 
 // GetFieldSchema returns the schema of the specified Record field.
 func (r Record) GetFieldSchema(fieldName string) (interface{}, error) {
 	// qualify fieldName searches based on record namespace
-	fn, err := newName(nameName(fieldName), nameNamespace(r.n.ns))
-	if err != nil {
-		return nil, err
-	}
-	field, err := r.getField(fn.n)
+	field, err := r.getField(getQualifiedName(fieldName, r.n.ns, ""))
 	if err != nil {
 		return nil, err
 	}
@@ -109,11 +101,7 @@ func (r Record) SetQualified(qualifiedName string, value interface{}) error {
 // Set updates the datum of the specified Record field.
 func (r Record) Set(fieldName string, value interface{}) error {
 	// qualify fieldName searches based on record namespace
-	fn, err := newName(nameName(fieldName), nameNamespace(r.n.ns))
-	if err != nil {
-		return err
-	}
-	return r.SetQualified(fn.n, value)
+	return r.SetQualified(getQualifiedName(fieldName, r.n.ns, ""), value)
 }
 
 // String returns a string representation of the Record.
@@ -173,13 +161,13 @@ func NewRecord(setters ...RecordSetter) (*Record, error) {
 		return nil, newCodecBuildError("record", "record fields ought to be non-empty array")
 	}
 
-	record.Fields = make([]*recordField, len(fields))
-	for i, field := range fields {
+	record.Fields = record.Fields[:0]
+	for _, field := range fields {
 		rf, err := newRecordField(field, recordFieldEnclosingNamespace(ns))
 		if err != nil {
 			return nil, newCodecBuildError("record", err)
 		}
-		record.Fields[i] = rf
+		record.Fields = append(record.Fields, rf)
 	}
 
 	// fields optional to the avro spec
